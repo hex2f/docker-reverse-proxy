@@ -17,37 +17,30 @@ export default class HTTPServer {
     }
 
     const [host, port] = (req.headers.host as string).split(':')
-    const ip = this.containers.hostMap.get(host)
-
+    const ip = this.containers.resolveIP(host)
     if (ip === undefined) {
-      res.statusCode = 404
-      res.end('Host not found')
+      res.writeHead(404)
+      res.end()
       return
     }
-
-    const proxiedRequest = http.request({
+    const ricochet = http.request({
       host: ip,
       port: 80,
-      method: req.method,
       path: req.url,
+      method: req.method,
       headers: req.headers
-    })
-
-    proxiedRequest.on('connect', () => {
-      req.pipe(proxiedRequest)
-    })
-
-    proxiedRequest.on('response', (response: http.IncomingMessage) => {
+    }, (response) => {
       res.writeHead(response.statusCode ?? 200, response.headers)
       response.pipe(res)
     })
+    req.pipe(ricochet)
 
-    proxiedRequest.on('error', () => {
+    ricochet.on('error', () => {
       res.statusCode = 504
       res.end('Request timed out')
     })
 
-    proxiedRequest.on('timeout', () => {
+    ricochet.on('timeout', () => {
       res.statusCode = 504
       res.end('Request timed out')
     })
