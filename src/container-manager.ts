@@ -100,11 +100,15 @@ export default class ContainerManager {
         if (!dockerContainerInfo) {
           continue
         }
-        if (!hostmap[dockerContainerInfo.NetworkSettings.Networks.bridge.IPAddress]) {
-          hostmap[dockerContainerInfo.NetworkSettings.Networks.bridge.IPAddress] = []
+        let network = Object.values(dockerContainerInfo.NetworkSettings.Networks)
+        if (network.length === 0) {
+          continue
         }
-        hostmap[dockerContainerInfo.NetworkSettings.Networks.bridge.IPAddress].push(hostname)
-        tempHostMap.set(hostname, dockerContainerInfo.NetworkSettings.Networks.bridge.IPAddress)
+        if (!hostmap[network[0].IPAddress]) {
+          hostmap[network[0].IPAddress] = []
+        }
+        hostmap[network[0].IPAddress].push(hostname)
+        tempHostMap.set(hostname, network[0].IPAddress)
       } catch (e) {
         log.error(e)
       }
