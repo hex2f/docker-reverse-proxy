@@ -7,6 +7,6 @@ import SSHServer from './ssh-server'
 import HTTPSServer from './https-server'
 
 const manager = new ContainerManager('./containers.yml')
-const https = new HTTPSServer('./ssl.yml', manager, 443)
-const http = new HTTPServer(manager, 80)
-const ssh = new SSHServer('./id_rsa', 22, manager)
+const https = new HTTPSServer('./ssl.yml', manager, 4443)
+const http = new HTTPServer(manager, 8080)
+const ssh = new SSHServer('./id_rsa', 2222, manager)

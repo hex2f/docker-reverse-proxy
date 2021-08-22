@@ -30,15 +30,12 @@ export default class HTTPSServer {
     slignshot.on('end', () => socket.end())
     socket.once("data", (data) => {
       const host = sni(data);
-      const isleah = host.endsWith('.leeah.one')
-      log
+      const isleah = host.endsWith('.leah.one')
       const ip = isleah ? 'localhost' : this.containers.resolveIP(host);
-      log(`${host} -> ${ip}`)
       if (ip === undefined) {
         return socket.end()
       }
       slignshot.connect({ host: isleah ? 'localhost' : ip, port: isleah ? (this.port+1) : 443 }, () => {
-        log(`connected to ${ip}`)
         slignshot.write(data)
         socket.pipe(slignshot).pipe(socket)
       })
@@ -46,7 +43,6 @@ export default class HTTPSServer {
   }
 
   async httpsHandler(req: IncomingMessage, res: ServerResponse): Promise<void> {
-    log('https request')
     const host = req.headers.host
     if (host === undefined) {
       res.statusCode = 400
