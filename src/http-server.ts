@@ -33,6 +33,7 @@ export default class HTTPServer {
       res.writeHead(response.statusCode ?? 200, response.headers)
       response.pipe(res)
     })
+    
     req.pipe(ricochet)
 
     ricochet.on('error', () => {

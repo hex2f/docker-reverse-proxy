@@ -65,7 +65,18 @@ export default class HTTPSServer {
       res.writeHead(response.statusCode ?? 200, response.headers)
       response.pipe(res)
     })
+    
     req.pipe(ricochet)
+
+    ricochet.on('error', () => {
+      res.statusCode = 504
+      res.end('Request timed out')
+    })
+
+    ricochet.on('timeout', () => {
+      res.statusCode = 504
+      res.end('Request timed out')
+    })
   }
 
   listen (): void {
