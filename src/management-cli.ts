@@ -121,7 +121,7 @@ async function main (): Promise<void> {
               }
             ])
 
-          config.containers[container].ssh_keys = config.containers[container].ssh_keys.filter((sshKey: string) => sshKey !== sshKeyToRemove)
+          config.containers[container].ssh_keys = config.containers[container].ssh_keys.filter((sshKey: string) => (sshKey.slice(0, 25) + '... ' + sshKey.split(' ').slice(2).join(' ')) !== sshKeyToRemove)
           break
         case 'back':
           void main()
