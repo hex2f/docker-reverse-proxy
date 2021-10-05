@@ -100,7 +100,7 @@ export default class ContainerManager {
         if (!dockerContainerInfo) {
           continue
         }
-        let network = Object.values(dockerContainerInfo.NetworkSettings.Networks)
+        const network = Object.values(dockerContainerInfo.NetworkSettings.Networks)
         if (network.length === 0) {
           continue
         }
