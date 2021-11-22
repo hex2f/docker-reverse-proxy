@@ -4,6 +4,7 @@ import { timingSafeEqual } from 'crypto'
 import { ParsedKey } from 'ssh2-streams'
 import log from '~/log'
 import ContainerManager from './container-manager'
+import internal from 'stream'
 
 function checkValue (input: Buffer, allowed: Buffer): boolean {
   const autoReject = (input.length !== allowed.length)
@@ -30,6 +31,9 @@ export default class SSHServer {
     const reject = () => {
       context.reject()
     }
+
+    const isLogs = context.username.startsWith('logs.')
+    const username = isLogs ? context.username.substring(5) : context.username
 
     try {
       log.info('SSH Authentication Started')
@@ -63,44 +67,64 @@ export default class SSHServer {
 
       log.info('SSH Authenticated')
 
-      client.on('session', (acceptSess, rejectSess) => this.sessionHandler(client, acceptSess, rejectSess, context.username))
+      client.on('session', (acceptSess, rejectSess) => this.sessionHandler(client, acceptSess, rejectSess, context.username, isLogs))
       context.accept()
     } catch (e) {
       reject()
     }
   }
 
-  private async sessionHandler (client: ssh2.Connection, acceptSess: () => ssh2.Session, rejectSess: () => void, username: string): Promise<void> {
+  private async sessionHandler (client: ssh2.Connection, acceptSess: () => ssh2.Session, rejectSess: () => void, username: string, isLogs: boolean): Promise<void> {
     try {
       log.info('SSH Session Started')
       const container = await this.containers.resolveContainer(username)
       if (container === undefined) return rejectSess()
 
-      const exec = await container.exec({
-        Cmd: ['/bin/bash'],
-        AttachStderr: true,
-        AttachStdout: true,
-        AttachStdin: true,
-        Tty: true
-      })
-      const containerStream = await exec.start({ stdin: true })
-      const session = acceptSess()
-      session.on('pty', (acceptPty, rejectPty) => {
-        acceptPty?.()
-      })
-      session.on('shell', async (acceptShell, rejectShell) => {
-        try {
-          log('SSH Shell started')
-          const stream = acceptShell()
-          container.modem.demuxStream(containerStream, stream, stream)
-          containerStream.on('end', () => {
-            client.end()
-          })
-          stream.pipe(containerStream)
-        } catch(e) {
-          rejectShell?.()
-        }
-      })
+      if (isLogs) {
+        const containerStream = await container.logs({ follow: true })
+        const session = acceptSess()
+        session.on('pty', (acceptPty, rejectPty) => {
+          acceptPty?.()
+        })
+        session.on('shell', async (acceptShell, rejectShell) => {
+          try {
+            log('SSH Log session started')
+            const stream = acceptShell()
+            container.modem.demuxStream(containerStream, stream, stream)
+            containerStream.on('end', () => {
+              client.end()
+            })
+          } catch(e) {
+            rejectShell?.()
+          }
+        })
+      } else {
+        const exec = await container.exec({
+          Cmd: ['/bin/bash'],
+          AttachStderr: true,
+          AttachStdout: true,
+          AttachStdin: true,
+          Tty: true
+        })
+        const containerStream = await exec.start({ stdin: true })
+        const session = acceptSess()
+        session.on('pty', (acceptPty, rejectPty) => {
+          acceptPty?.()
+        })
+        session.on('shell', async (acceptShell, rejectShell) => {
+          try {
+            log('SSH Shell started')
+            const stream = acceptShell()
+            container.modem.demuxStream(containerStream, stream, stream)
+            containerStream.on('end', () => {
+              client.end()
+            })
+            stream.pipe(containerStream)
+          } catch(e) {
+            rejectShell?.()
+          }
+        })
+      }
     } catch (e) {
       rejectSess()
     }
