@@ -75,6 +75,7 @@ export default class SSHServer {
   }
 
   private async sessionHandler (client: ssh2.Connection, acceptSess: () => ssh2.Session, rejectSess: () => void, username: string, isLogs: boolean): Promise<void> {
+    log.info({  username, isLogs }, 'SSH Session requested')
     try {
       log.info('SSH Session Started')
       const container = await this.containers.resolveContainer(username)
