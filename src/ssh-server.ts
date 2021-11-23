@@ -67,7 +67,7 @@ export default class SSHServer {
 
       log.info('SSH Authenticated')
 
-      client.on('session', (acceptSess, rejectSess) => this.sessionHandler(client, acceptSess, rejectSess, context.username, isLogs))
+      client.on('session', (acceptSess, rejectSess) => this.sessionHandler(client, acceptSess, rejectSess, username, isLogs))
       context.accept()
     } catch (e) {
       reject()
