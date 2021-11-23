@@ -96,7 +96,8 @@ export default class SSHServer {
             const stream = acceptShell()
             const sessionStream = new internal.PassThrough()
             sessionStream.on('data', (data) => stream.write(data))
-            stream.push(`=== Logs for ${username} ===\r\n`)
+            log.debug(stream)
+            log.debug(containerStream)
             container.modem.demuxStream(containerStream, sessionStream, sessionStream)
             containerStream.on('end', () => {
               client.end()
