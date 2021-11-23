@@ -32,7 +32,7 @@ export default class SSHServer {
       context.reject()
     }
 
-    const isLogs = context.username.startsWith('logs.')
+    const isLogs = context.username.startsWith('logs_')
     const username = isLogs ? context.username.substring(5) : context.username
 
     try {
@@ -82,6 +82,7 @@ export default class SSHServer {
       if (container === undefined) return rejectSess()
 
       if (isLogs) {
+        log.debug('log session')
         const containerStream = await container.logs({ follow: true })
         const session = acceptSess()
         session.on('pty', (acceptPty, rejectPty) => {
