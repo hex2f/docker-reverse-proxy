@@ -12,6 +12,4 @@ const https = new HTTPSServer('./ssl.yml', manager, 443)
 const http = new HTTPServer(manager, 80)
 const ssh = new SSHServer('./id_rsa', 22, manager)
 
-process.on('uncaughtException', function (err) {
-  log.error(err)
-})
+process.on('uncaughtException', function (err) { })
