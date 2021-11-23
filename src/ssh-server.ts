@@ -96,6 +96,7 @@ export default class SSHServer {
               client.end()
             })
           } catch(e) {
+            log.error("shell rejected", e)
             rejectShell?.()
           }
         })
