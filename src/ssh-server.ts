@@ -85,9 +85,11 @@ export default class SSHServer {
         const containerStream = await container.logs({ follow: true })
         const session = acceptSess()
         session.on('pty', (acceptPty, rejectPty) => {
+          log.debug('pty requested')
           acceptPty?.()
         })
         session.on('shell', async (acceptShell, rejectShell) => {
+          log.debug('shell requested')
           try {
             log('SSH Log session started')
             const stream = acceptShell()
