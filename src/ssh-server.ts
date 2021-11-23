@@ -37,7 +37,7 @@ export default class SSHServer {
 
     try {
       log.info('SSH Authentication Started')
-      const config = this.containers.resolveConfig(context.username)
+      const config = this.containers.resolveConfig(username)
       if (config === undefined) return reject()
 
       const allowedKeys = config.ssh_keys
