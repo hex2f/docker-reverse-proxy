@@ -32,7 +32,7 @@ export default class SSHServer {
       context.reject()
     }
 
-    const isLogs = context.username.startsWith('logs_')
+    const isLogs = context.username.startsWith('logs.')
     const username = isLogs ? context.username.substring(5) : context.username
 
     try {
@@ -83,7 +83,7 @@ export default class SSHServer {
 
       if (isLogs) {
         log.debug('log session')
-        const containerStream = await container.logs({ follow: true })
+        const containerStream = await container.logs({ follow: true, stderr: true, stdout: true })
         const session = acceptSess()
         session.on('pty', (acceptPty, rejectPty) => {
           log.debug('pty requested')
@@ -94,6 +94,7 @@ export default class SSHServer {
           try {
             log('SSH Log session started')
             const stream = acceptShell()
+            stream.push(`=== Tailing logs for ${username} ===\r\n`)
             container.modem.demuxStream(containerStream, stream, stream)
             containerStream.on('end', () => {
               client.end()
